@@ -8,6 +8,8 @@ app.use(express.json());
 // Nossa "caixa de usuários"
 const usuarios = [];
 
+const transacoes = [];
+
 // Página inicial
 app.get("/", (req, res) => {
   res.send("Olá! Eu sou seu sistema financeiro!");
@@ -68,6 +70,31 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.post("/transactions", (req, res) => {
+  const descricao = req.body.descricao;
+  const valor = req.body.valor;
+  const tipo = req.body.tipo;
+
+  const novaTransacao = {
+    descricao,
+    valor,
+    tipo,
+  };
+
+  console.log("Nova transação:");
+  console.log(novaTransacao);
+
+  transacoes.push(novaTransacao);
+
+  console.log("Lista de transações:");
+  console.log(novaTransacao);
+
+  res.json(novaTransacao);
+});
+
+app.get("/transactions", (req, res) => {
+  res.json(transacoes);
+});
 // Inicia o servidor
 app.listen(3000, () => {
   console.log("🚀 Servidor rodando em http://localhost:3000");
