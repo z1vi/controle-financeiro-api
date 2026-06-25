@@ -22,6 +22,16 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     senha: req.body.senha,
   };
+  if (novoUsuario.nome === "" || novoUsuario.email === "" || novoUsuario.senha === "") {
+    return res.status(400).json({
+      erro: "Todos os campos são obrigatórios",
+    });
+  }
+  if (usuarios.some((usuario) => usuario.email === novoUsuario.email)) {
+    return res.status(400).json({
+      message: "Já existe um usuário cadastrado com este e-mail. ",
+    });
+  }
 
   usuarios.push(novoUsuario);
 
@@ -73,6 +83,20 @@ app.post("/login", (req, res) => {
 app.post("/transactions", (req, res) => {
   const descricao = req.body.descricao;
   const valor = req.body.valor;
+    if (valor <= 0) {
+    return res.status(400).json({
+      message: "O valor da transação deve ser maior que zero",
+    });
+  }
+    if (descricao === "") {
+    return res.status(400).json({
+      message: "A descrição da transação não pode ser vazia",
+    });
+  } 
+    if (valor === string) {
+      return res.status(400).json({
+        message: "O valor da transação deve ser um número",
+      })
   const tipo = req.body.tipo;
 
   const novaTransacao = {
@@ -95,6 +119,23 @@ app.post("/transactions", (req, res) => {
 app.get("/transactions", (req, res) => {
   res.json(transacoes);
 });
+
+app.get("/balance", (req, res) => {
+  let saldo = 0;
+
+  for (const transacao of transacoes) {
+    if (transacao.tipo === "entrada") {
+      saldo = +transacao.valor;
+    } else if (transacao.tipo === "saida") {
+      saldo -= transacao.valor;
+    }
+  }
+
+  res.json({
+    balance: saldo,
+  });
+});
+
 // Inicia o servidor
 app.listen(3000, () => {
   console.log("🚀 Servidor rodando em http://localhost:3000");
