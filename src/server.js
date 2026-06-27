@@ -2,15 +2,18 @@ const express = require("express");
 
 const app = express();
 
-// Permite receber JSON
+// Permite receber JSON no body das requisições
 app.use(express.json());
 
-// Nossa "caixa de usuários"
+// "Banco em memória" (para desenvolvimento): armazena usuários e transações.
+// Observação: ao reiniciar o servidor, tudo é perdido.
 const usuarios = [];
-
 const transacoes = [];
 
-// Página inicial
+// Incrementa o ID das transações
+let proximoId = 1;
+
+// Página inicial (saída simples para validar que o servidor está ativo)
 app.get("/", (req, res) => {
   res.send("Olá! Eu sou seu sistema financeiro!");
 });
@@ -22,7 +25,11 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     senha: req.body.senha,
   };
-  if (novoUsuario.nome === "" || novoUsuario.email === "" || novoUsuario.senha === "") {
+  if (
+    novoUsuario.nome === "" ||
+    novoUsuario.email === "" ||
+    novoUsuario.senha === ""
+  ) {
     return res.status(400).json({
       erro: "Todos os campos são obrigatórios",
     });
@@ -83,23 +90,32 @@ app.post("/login", (req, res) => {
 app.post("/transactions", (req, res) => {
   const descricao = req.body.descricao;
   const valor = req.body.valor;
-    if (valor <= 0) {
+  if (valor <= 0) {
     return res.status(400).json({
       message: "O valor da transação deve ser maior que zero",
     });
   }
-    if (descricao === "") {
+  if (descricao === "") {
     return res.status(400).json({
       message: "A descrição da transação não pode ser vazia",
     });
-  } 
-    if (valor === string) {
-      return res.status(400).json({
-        message: "O valor da transação deve ser um número",
-      })
+  }
+  if (typeof valor !== "string" && typeof valor !== "number") {
+    return res.status(400).json({
+      message: "O valor da transação deve ser um número",
+    });
+  }
+
   const tipo = req.body.tipo;
 
+  if (tipo !== "entrada" && tipo !== "saida") {
+    return res.status(400).json({
+      message: 'O tipo da transação deve ser apenas "entrada" ou "saida"',
+    });
+  }
+
   const novaTransacao = {
+    id: proximoId++,
     descricao,
     valor,
     tipo,
@@ -125,7 +141,7 @@ app.get("/balance", (req, res) => {
 
   for (const transacao of transacoes) {
     if (transacao.tipo === "entrada") {
-      saldo = +transacao.valor;
+      saldo += +transacao.valor;
     } else if (transacao.tipo === "saida") {
       saldo -= transacao.valor;
     }
