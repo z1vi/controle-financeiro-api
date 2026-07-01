@@ -12,6 +12,8 @@ const transacoes = [];
 
 // Incrementa o ID das transações
 let proximoId = 1;
+//incrementa o ID dos usuários
+let proximoUsuarioId = 1;
 
 // Página inicial (saída simples para validar que o servidor está ativo)
 app.get("/", (req, res) => {
@@ -21,18 +23,17 @@ app.get("/", (req, res) => {
 // Cadastro de usuário
 app.post("/register", (req, res) => {
   const novoUsuario = {
+    id: proximoUsuarioId++, // Gera um ID incremental para cada usuário
     nome: req.body.nome,
     email: req.body.email,
     senha: req.body.senha,
   };
 
-  if (
-    novoUsuario.nome === "" ||
-    novoUsuario.email === "" ||
-    novoUsuario.senha === ""
-  ) {
+  // Valida os campos obrigatórios e impede e-mails duplicados.
+
+  if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
     return res.status(400).json({
-      erro: "Todos os campos são obrigatórios",
+      message: "Todos os campos são obrigatórios",
     });
   }
 
@@ -50,8 +51,8 @@ app.post("/register", (req, res) => {
   console.log("Lista de usuários:");
   console.log(usuarios);
 
-  res.json({
-    mensagem: "Usuário cadastrado com sucesso!",
+  res.status(201).json({
+    message: "Usuário cadastrado com sucesso!",
     usuario: novoUsuario,
   });
 });
@@ -73,18 +74,18 @@ app.post("/login", (req, res) => {
 
   if (!usuarioEncontrado) {
     return res.status(401).json({
-      erro: "Usuário não encontrado",
+      message: "Usuário não encontrado",
     });
   }
 
   if (usuarioEncontrado.senha !== senha) {
     return res.status(401).json({
-      erro: "Senha incorreta",
+      message: "Senha incorreta",
     });
   }
 
   res.json({
-    mensagem: "Login realizado com sucesso!",
+    messagem: "Login realizado com sucesso!",
     usuario: usuarioEncontrado.nome,
   });
 });
@@ -93,24 +94,23 @@ app.post("/transactions", (req, res) => {
   const descricao = req.body.descricao;
   const valor = req.body.valor;
 
+  if (typeof valor !== "number") {
+    return res.status(400).json({
+      message: "O valor da transação deve ser um número",
+    });
+  }
+
   if (valor <= 0) {
     return res.status(400).json({
       message: "O valor da transação deve ser maior que zero",
     });
   }
 
-  if (descricao === "") {
+  if (!descricao) {
     return res.status(400).json({
       message: "A descrição da transação não pode ser vazia",
     });
   }
-
-  if (typeof valor !== "string" && typeof valor !== "number") {
-    return res.status(400).json({
-      message: "O valor da transação deve ser um número",
-    });
-  }
-
   const tipo = req.body.tipo;
 
   if (tipo !== "entrada" && tipo !== "saida") {
@@ -132,9 +132,9 @@ app.post("/transactions", (req, res) => {
   transacoes.push(novaTransacao);
 
   console.log("Lista de transações:");
-  console.log(novaTransacao);
+  console.log(transacoes);
 
-  res.json(novaTransacao);
+  res.status(201).json(novaTransacao);
 });
 
 app.get("/transactions", (req, res) => {
@@ -154,15 +154,28 @@ app.put("/transactions/:id", (req, res) => {
   const { descricao, valor, tipo } = req.body;
 
   if (descricao !== undefined) {
+    if (!descricao) {
+      return res.status(400).json({
+        message: "A descrição da transação não pode ser vazia",
+      });
+    }
+
     transacao.descricao = descricao;
   }
 
   if (valor !== undefined) {
+    if (typeof valor !== "number") {
+      return res.status(400).json({
+        message: "O valor da transação deve ser um número",
+      });
+    }
+
     if (valor <= 0) {
       return res.status(400).json({
         message: "O valor da transação deve ser maior que zero",
       });
     }
+
     transacao.valor = valor;
   }
 
@@ -190,7 +203,7 @@ app.delete("/transactions/:id", (req, res) => {
 
   const removida = transacoes.splice(index, 1)[0];
   res.json({
-    mensagem: "Transação removida com sucesso!",
+    message: "Transação removida com sucesso!",
     transacao: removida,
   });
 });
@@ -200,7 +213,7 @@ app.get("/balance", (req, res) => {
 
   for (const transacao of transacoes) {
     if (transacao.tipo === "entrada") {
-      saldo += +transacao.valor;
+      saldo += transacao.valor;
     } else if (transacao.tipo === "saida") {
       saldo -= transacao.valor;
     }
