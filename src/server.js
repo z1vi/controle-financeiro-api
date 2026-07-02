@@ -5,8 +5,7 @@ const app = express();
 // Permite receber JSON no body das requisições
 app.use(express.json());
 
-// "Banco em memória" (para desenvolvimento): armazena usuários e transações.
-// Observação: ao reiniciar o servidor, tudo é perdido.
+//Variáveis para armazenar usuários e transações
 const usuarios = [];
 const transacoes = [];
 
@@ -15,7 +14,33 @@ let proximoId = 1;
 //incrementa o ID dos usuários
 let proximoUsuarioId = 1;
 
+// Função auxliares
+const validarTipo = (tipo) => {
+  if (tipo === "entrada" || tipo === "saida") {
+    return true;
+  }
+
+  return false;
+};
+
+const validarValor = (valor) => {
+  if (valor === undefined || valor === null) {
+    return "O valor da transação é obrigatório";
+  }
+
+  if (typeof valor !== "number") {
+    return "O valor da transação deve ser um número";
+  }
+
+  if (valor <= 0) {
+    return "O valor da transação deve ser maior que zero";
+  }
+
+  return null;
+};
+
 // Página inicial (saída simples para validar que o servidor está ativo)
+// Rotas
 app.get("/", (req, res) => {
   res.send("Olá! Eu sou seu sistema financeiro!");
 });
@@ -113,7 +138,11 @@ app.post("/transactions", (req, res) => {
   }
   const tipo = req.body.tipo;
 
-  if (tipo !== "entrada" && tipo !== "saida") {
+  const validarTipo = (tipo) => {
+    return tipo === "entrada" || tipo === "saida";
+  };
+
+  if (!validarTipo(tipo)) {
     return res.status(400).json({
       message: 'O tipo da transação deve ser apenas "entrada" ou "saida"',
     });
