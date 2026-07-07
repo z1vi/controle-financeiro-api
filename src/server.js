@@ -3,6 +3,7 @@ const { validarTipo, validarValor } = require("./validadores");
 
 const app = express();
 
+
 // Permite receber JSON no body das requisições
 app.use(express.json());
 
@@ -16,6 +17,7 @@ let proximoId = 1;
 let proximoUsuarioId = 1;
 
 
+
 // Página inicial (saída simples para validar que o servidor está ativo)
 // Rotas
 app.get("/", (req, res) => {
@@ -23,46 +25,10 @@ app.get("/", (req, res) => {
 });
 
 // Cadastro de usuário
-app.post("/register", (req, res) => {
-  const novoUsuario = {
-    id: proximoUsuarioId++, // Gera um ID incremental para cada usuário
-    nome: req.body.nome,
-    email: req.body.email,
-    senha: req.body.senha,
-  };
+// Router de usuários (GET /users, POST /users)
+const usuarioRouter = require("./routes/usuarios");
+app.use("/users", usuarioRouter(usuarios));
 
-  // Valida os campos obrigatórios e impede e-mails duplicados.
-
-  if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
-    return res.status(400).json({
-      message: "Todos os campos são obrigatórios",
-    });
-  }
-
-  if (usuarios.some((usuario) => usuario.email === novoUsuario.email)) {
-    return res.status(400).json({
-      message: "Já existe um usuário cadastrado com este e-mail. ",
-    });
-  }
-
-  usuarios.push(novoUsuario);
-
-  console.log("Usuário cadastrado:");
-  console.log(novoUsuario);
-
-  console.log("Lista de usuários:");
-  console.log(usuarios);
-
-  res.status(201).json({
-    message: "Usuário cadastrado com sucesso!",
-    usuario: novoUsuario,
-  });
-});
-
-// Listar usuários
-app.get("/users", (req, res) => {
-  res.json(usuarios);
-});
 
 // Login
 app.post("/login", (req, res) => {
