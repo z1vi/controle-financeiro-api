@@ -1,45 +1,20 @@
-const express = require('express');
+const express = require("express");
+
+const usuariosController = require("../controllers/usuariosController");
 
 // Factory: cria o router já “amarrado” ao array de usuários em memória.
 module.exports = (usuarios) => {
   const usuarioRouter = express.Router();
+  const controller = usuariosController(usuarios);
 
   // Rota para listar todos os usuários
-  usuarioRouter.get('/', (req, res) => {
-    res.json(usuarios);
-  });
+  usuarioRouter.get("/", controller.listarUsuarios);
 
   // Rota para cadastrar um usuário
-  usuarioRouter.post('/', (req, res) => {
-    const novoUsuario = req.body;
-
-    if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
-      return res.status(400).json({
-        message: "Todos os campos são obrigatórios",
-      });
-    }
-
-    if (usuarios.some((usuario) => usuario.email === novoUsuario.email)) {
-      return res.status(400).json({
-        message: "Já existe um usuário cadastrado com este e-mail.",
-      });
-    }
-
-    usuarios.push(novoUsuario);
-
-    console.log("Usuário cadastrado:");
-    console.log(novoUsuario);
-
-    console.log("Lista de usuários:");
-    console.log(usuarios);
-
-    res.status(201).json({
-      message: "Usuário cadastrado com sucesso!",
-      usuario: novoUsuario,
-    });
-  });
+  usuarioRouter.post("/", controller.cadastrarUsuario);
 
   return usuarioRouter;
 };
+
 
 
