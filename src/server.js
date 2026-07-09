@@ -81,13 +81,10 @@ app.post("/transactions", (req, res) => {
   }
   const tipo = req.body.tipo;
 
-  const validarTipo = (tipo) => {
-    return tipo === "entrada" || tipo === "saida";
-  };
-
-  if (!validarTipo(tipo)) {
+  const erroTipo = validarTipo(tipo);
+  if (erroTipo) {
     return res.status(400).json({
-      message: 'O tipo da transação deve ser apenas "entrada" ou "saida"',
+      message: erroTipo,
     });
   }
 
