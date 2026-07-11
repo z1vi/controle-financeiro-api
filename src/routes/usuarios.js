@@ -13,6 +13,11 @@ module.exports = (usuarios) => {
   // Rota para cadastrar um usuário
   usuarioRouter.post("/", controller.cadastrarUsuario);
 
+  // Rota para login
+  usuarioRouter.post("/login", controller.loginUsuario);
+
+
+
   return usuarioRouter;
 };
 

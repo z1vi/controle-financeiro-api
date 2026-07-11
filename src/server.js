@@ -30,33 +30,7 @@ const usuarioRouter = require("./routes/usuarios");
 app.use("/users", usuarioRouter(usuarios));
 
 
-// Login
-app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const senha = req.body.senha;
 
-  console.log("Tentativa de login:");
-  console.log(req.body);
-
-  const usuarioEncontrado = usuarios.find((usuario) => usuario.email === email);
-
-  if (!usuarioEncontrado) {
-    return res.status(401).json({
-      message: "Usuário não encontrado",
-    });
-  }
-
-  if (usuarioEncontrado.senha !== senha) {
-    return res.status(401).json({
-      message: "Senha incorreta",
-    });
-  }
-
-  res.json({
-    messagem: "Login realizado com sucesso!",
-    usuario: usuarioEncontrado.nome,
-  });
-});
 
 app.post("/transactions", (req, res) => {
   const descricao = req.body.descricao;
