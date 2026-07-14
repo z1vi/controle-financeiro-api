@@ -10,9 +10,10 @@ app.use(express.json());
 const usuarios = [];
 
 // Página inicial (teste rápido se o servidor está vivo)
-app.get("/", ( => {
-  res.send("Olá! Eu sou seu sistema financeiro!");
+app.get("/", (req, res) => {
+  res.send("Servidor rodando! Acesse /users ou /transactions para interagir com a API.");
 });
+
 
 // Rotas de usuários (Factory recebe o array em memória)
 const usuarioRouter = require("./routes/usuarios");
