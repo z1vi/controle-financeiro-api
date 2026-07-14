@@ -51,7 +51,7 @@ module.exports = (usuarios) => {
     }
 
     return res.json({
-      mesage: "Login realizado com sucesso!",
+      message: "Login realizado com sucesso!",
       usuario: usuarioEncontrado.nome,
     });
   };

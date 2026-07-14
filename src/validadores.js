@@ -1,4 +1,9 @@
+// Validações reutilizáveis para endpoints de transações.
+// Retorno (tipo): boolean.
+// Retorno (valor): string com erro (ou null se estiver ok).
+
 const validarTipo = (tipo) => {
+  // Permitimos apenas 'entrada' (crédito) e 'saida' (débito)
   if (tipo === "entrada" || tipo === "saida") {
     return true;
   }
@@ -20,9 +25,10 @@ const validarValor = (valor) => {
   }
 
   return null;
-};  
+};
 
 module.exports = {
   validarTipo,
   validarValor,
 };
+
