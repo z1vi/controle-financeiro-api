@@ -1,59 +1,31 @@
 module.exports = (usuarios) => {
+  const usuariosService = require("../services/usuariosService");
+  const service = usuariosService(usuarios);
+
+  // Controller “fino”: só extrai dados da req e delega ao service.
   const listarUsuarios = (req, res) => {
-    return res.json(usuarios);
+    const { statusCode, body } = service.listarUsuarios();
+    return res.status(statusCode).json(body);
   };
 
   const cadastrarUsuario = (req, res) => {
     const { nome, email, senha } = req.body || {};
 
-    if (!nome || !email || !senha) {
-      return res.status(400).json({
-        message: "Todos os campos são obrigatórios",
-      });
-    }
-
-    if (usuarios.some((usuario) => usuario.email === email)) {
-      return res.status(400).json({
-        message: "Já existe um usuário cadastrado com este e-mail.",
-      });
-    }
-
-    const novoUsuario = {
-      id: usuarios.length + 1,
+    const { statusCode, body } = service.cadastrarUsuario({
       nome,
       email,
       senha,
-    };
-
-    usuarios.push(novoUsuario);
-
-    return res.status(201).json({
-      message: "Usuário cadastrado com sucesso!",
-      usuario: novoUsuario,
     });
+
+    return res.status(statusCode).json(body);
   };
 
   const loginUsuario = (req, res) => {
     const { email, senha } = req.body || {};
 
-    const usuarioEncontrado = usuarios.find((usuario) => usuario.email === email);
+    const { statusCode, body } = service.loginUsuario({ email, senha });
 
-    if (!usuarioEncontrado) {
-      return res.status(401).json({
-        message: "Usuário não encontrado",
-      });
-    }
-
-    if (usuarioEncontrado.senha !== senha) {
-      return res.status(401).json({
-        message: "Senha incorreta",
-      });
-    }
-
-    return res.json({
-      message: "Login realizado com sucesso!",
-      usuario: usuarioEncontrado.nome,
-    });
+    return res.status(statusCode).json(body);
   };
 
   return {
@@ -62,5 +34,4 @@ module.exports = (usuarios) => {
     loginUsuario,
   };
 };
-
 
