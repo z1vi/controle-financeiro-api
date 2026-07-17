@@ -4,28 +4,35 @@ module.exports = (usuarios) => {
 
   // Controller “fino”: só extrai dados da req e delega ao service.
   const listarUsuarios = (req, res) => {
-    const { statusCode, body } = service.listarUsuarios();
-    return res.status(statusCode).json(body);
+    const body = service.listarUsuarios();
+    return res.status(200).json(body);
   };
 
   const cadastrarUsuario = (req, res) => {
     const { nome, email, senha } = req.body || {};
 
-    const { statusCode, body } = service.cadastrarUsuario({
+    const resultado = service.cadastrarUsuario({
       nome,
       email,
       senha,
     });
 
-    return res.status(statusCode).json(body);
+    const statusCode =
+      resultado.kind === "AUTH" ? 401 :
+      resultado.kind === "VALIDATION" ? 400 :
+      201;
+
+    return res.status(statusCode).json(resultado.body);
   };
 
   const loginUsuario = (req, res) => {
     const { email, senha } = req.body || {};
 
-    const { statusCode, body } = service.loginUsuario({ email, senha });
+    const resultado = service.loginUsuario({ email, senha });
 
-    return res.status(statusCode).json(body);
+    const statusCode = resultado.kind === "AUTH" ? 401 : 200;
+
+    return res.status(statusCode).json(resultado.body);
   };
 
   return {

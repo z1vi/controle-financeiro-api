@@ -2,30 +2,31 @@
 
 module.exports = (usuarios) => {
   const listarUsuarios = () => {
-    return {
-      statusCode: 200,
-      body: usuarios,
-    };
+    return usuarios;
   };
 
   const cadastrarUsuario = ({ nome, email, senha } = {}) => {
     if (!nome || !email || !senha) {
       return {
-        statusCode: 400,
+        error: true,
+        kind: "VALIDATION",
         body: {
           message: "Todos os campos são obrigatórios",
         },
       };
     }
 
+
     if (usuarios.some((usuario) => usuario.email === email)) {
       return {
-        statusCode: 400,
+        error: true,
+        kind: "VALIDATION",
         body: {
           message: "Já existe um usuário cadastrado com este e-mail.",
         },
       };
     }
+
 
     const novoUsuario = {
       id: usuarios.length + 1,
@@ -37,12 +38,14 @@ module.exports = (usuarios) => {
     usuarios.push(novoUsuario);
 
     return {
-      statusCode: 201,
+      error: false,
+      kind: "SUCCESS",
       body: {
         message: "Usuário cadastrado com sucesso!",
         usuario: novoUsuario,
       },
     };
+
   };
 
   const loginUsuario = ({ email, senha } = {}) => {
@@ -50,7 +53,8 @@ module.exports = (usuarios) => {
 
     if (!usuarioEncontrado) {
       return {
-        statusCode: 401,
+        error: true,
+        kind: "AUTH",
         body: {
           message: "Usuário não encontrado",
         },
@@ -59,7 +63,8 @@ module.exports = (usuarios) => {
 
     if (usuarioEncontrado.senha !== senha) {
       return {
-        statusCode: 401,
+        error: true,
+        kind: "AUTH",
         body: {
           message: "Senha incorreta",
         },
@@ -67,7 +72,8 @@ module.exports = (usuarios) => {
     }
 
     return {
-      statusCode: 200,
+      error: false,
+      kind: "SUCCESS",
       body: {
         message: "Login realizado com sucesso!",
         usuario: usuarioEncontrado.nome,
