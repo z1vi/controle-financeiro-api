@@ -1,11 +1,12 @@
 const express = require("express");
+const balanceController = require("../controllers/balanceController");
 
-const router = express.Router();
+module.exports = (transacoes) => {
+  const router = express.Router();
+  const controller = balanceController(transacoes);
 
-router.get("/", (req, res) => {
-  res.json({
-    balance: 0,
-  });
-});
+  // GET /balance
+  router.get("/", controller.obterSaldo);
 
-module.exports = router;
+  return router;
+};

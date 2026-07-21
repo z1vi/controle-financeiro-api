@@ -1,7 +1,7 @@
 const { validarTipo, validarValor } = require("../validadores");
 
 // Service recebe o array em memória e concentra as regras de negócio.
-// Retorna também `status` para o controller usar em res.status(...).
+// Retorna `kind` para o controller mapear o status code HTTP.
 module.exports = (transacoes) => {
   const listarTransacoes = () => {
     return transacoes;
@@ -10,9 +10,7 @@ module.exports = (transacoes) => {
   const cadastrarTransacao = ({ descricao, valor, tipo } = {}) => {
     if (!descricao || valor === undefined || valor === null || !tipo) {
       return {
-        error: true,
         kind: "VALIDATION",
-        status: 400,
         body: { message: "Todos os campos são obrigatórios" },
       };
     }
@@ -20,9 +18,7 @@ module.exports = (transacoes) => {
     const tipoValido = validarTipo(tipo);
     if (!tipoValido) {
       return {
-        error: true,
         kind: "VALIDATION",
-        status: 400,
         body: {
           message: "O tipo da transação deve ser apenas 'entrada' ou 'saida'",
         },
@@ -32,9 +28,7 @@ module.exports = (transacoes) => {
     const erroValor = validarValor(valor);
     if (erroValor) {
       return {
-        error: true,
         kind: "VALIDATION",
-        status: 400,
         body: { message: erroValor },
       };
     }
@@ -54,9 +48,7 @@ module.exports = (transacoes) => {
     transacoes.push(novaTransacao);
 
     return {
-      error: false,
       kind: "SUCCESS",
-      status: 201,
       body: {
         message: "Transação cadastrada com sucesso!",
         transacao: novaTransacao,
@@ -70,9 +62,7 @@ module.exports = (transacoes) => {
 
     if (!transacao) {
       return {
-        error: true,
         kind: "NOT_FOUND",
-        status: 404,
         body: { message: "Transação não encontrada" },
       };
     }
@@ -80,9 +70,7 @@ module.exports = (transacoes) => {
     if (descricao !== undefined) {
       if (!descricao) {
         return {
-          error: true,
           kind: "VALIDATION",
-          status: 400,
           body: { message: "A descrição da transação não pode ser vazia" },
         };
       }
@@ -94,9 +82,7 @@ module.exports = (transacoes) => {
       const erroValor = validarValor(valor);
       if (erroValor) {
         return {
-          error: true,
           kind: "VALIDATION",
-          status: 400,
           body: { message: erroValor },
         };
       }
@@ -108,9 +94,7 @@ module.exports = (transacoes) => {
       const tipoValido = validarTipo(tipo);
       if (!tipoValido) {
         return {
-          error: true,
           kind: "VALIDATION",
-          status: 400,
           body: {
             message: "O tipo da transação deve ser apenas 'entrada' ou 'saida'",
           },
@@ -121,9 +105,7 @@ module.exports = (transacoes) => {
     }
 
     return {
-      error: false,
       kind: "SUCCESS",
-      status: 200,
       body: {
         message: "Transação atualizada com sucesso!",
         transacao,
@@ -137,9 +119,7 @@ module.exports = (transacoes) => {
 
     if (index === -1) {
       return {
-        error: true,
         kind: "NOT_FOUND",
-        status: 404,
         body: { message: "Transação não encontrada" },
       };
     }
@@ -147,9 +127,7 @@ module.exports = (transacoes) => {
     const transacaoRemovida = transacoes.splice(index, 1)[0];
 
     return {
-      error: false,
       kind: "SUCCESS",
-      status: 200,
       body: {
         message: "Transação removida com sucesso.",
         deleted: true,

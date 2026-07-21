@@ -8,7 +8,6 @@ module.exports = (usuarios) => {
   const cadastrarUsuario = ({ nome, email, senha } = {}) => {
     if (!nome || !email || !senha) {
       return {
-        error: true,
         kind: "VALIDATION",
         body: {
           message: "Todos os campos são obrigatórios",
@@ -19,7 +18,6 @@ module.exports = (usuarios) => {
 
     if (usuarios.some((usuario) => usuario.email === email)) {
       return {
-        error: true,
         kind: "VALIDATION",
         body: {
           message: "Já existe um usuário cadastrado com este e-mail.",
@@ -38,7 +36,6 @@ module.exports = (usuarios) => {
     usuarios.push(novoUsuario);
 
     return {
-      error: false,
       kind: "SUCCESS",
       body: {
         message: "Usuário cadastrado com sucesso!",
@@ -53,7 +50,6 @@ module.exports = (usuarios) => {
 
     if (!usuarioEncontrado) {
       return {
-        error: true,
         kind: "AUTH",
         body: {
           message: "Usuário não encontrado",
@@ -63,7 +59,6 @@ module.exports = (usuarios) => {
 
     if (usuarioEncontrado.senha !== senha) {
       return {
-        error: true,
         kind: "AUTH",
         body: {
           message: "Senha incorreta",
@@ -72,7 +67,6 @@ module.exports = (usuarios) => {
     }
 
     return {
-      error: false,
       kind: "SUCCESS",
       body: {
         message: "Login realizado com sucesso!",

@@ -18,7 +18,9 @@ module.exports = (transacoes) => {
       tipo,
     });
 
-    return res.status(resultado.status).json(resultado.body);
+    const statusCode = resultado.kind === "SUCCESS" ? 201 : 400;
+
+    return res.status(statusCode).json(resultado.body);
   };
 
   const atualizarTransacao = (req, res) => {
@@ -31,7 +33,11 @@ module.exports = (transacoes) => {
       tipo,
     });
 
-    const statusCode = resultado.kind === "NOT_FOUND" ? 404 : 400;
+    const statusCode =
+      resultado.kind === "NOT_FOUND" ? 404 :
+      resultado.kind === "VALIDATION" ? 400 :
+      200;
+
     return res.status(statusCode).json(resultado.body);
   };
 
@@ -40,7 +46,9 @@ module.exports = (transacoes) => {
 
     const resultado = service.deletarTransacao(id);
 
-    return res.status(resultado.status).json(resultado.body);
+    const statusCode = resultado.kind === "NOT_FOUND" ? 404 : 200;
+
+    return res.status(statusCode).json(resultado.body);
   };
 
   return {

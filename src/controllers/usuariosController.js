@@ -1,5 +1,6 @@
+const usuariosService = require("../services/usuariosService");
+
 module.exports = (usuarios) => {
-  const usuariosService = require("../services/usuariosService");
   const service = usuariosService(usuarios);
 
   // Controller “fino”: só extrai dados da req e delega ao service.
@@ -17,10 +18,7 @@ module.exports = (usuarios) => {
       senha,
     });
 
-    const statusCode =
-      resultado.kind === "AUTH" ? 401 :
-      resultado.kind === "VALIDATION" ? 400 :
-      201;
+    const statusCode = resultado.kind === "VALIDATION" ? 400 : 201;
 
     return res.status(statusCode).json(resultado.body);
   };

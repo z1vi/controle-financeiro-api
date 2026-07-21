@@ -28,6 +28,10 @@ const transacoes = [];
 const transacoesRouter = require("./routes/transacoes");
 app.use("/transactions", transacoesRouter(transacoes));
 
+// Rotas de balanço (usa o mesmo array de transações)
+const balanceRouter = require("./routes/balance");
+app.use("/balance", balanceRouter(transacoes));
+
 // Inicia o servidor
 app.listen(3000, () => {
   console.log("🚀 Servidor rodando em http://localhost:3000");
