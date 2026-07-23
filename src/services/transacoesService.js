@@ -1,10 +1,14 @@
 const { validarTipo, validarValor } = require("../validadores");
+const transacoesRepository = require("../repositories/transacoesRepository");
 
-// Service recebe o array em memória e concentra as regras de negócio.
-// Retorna `kind` para o controller mapear o status code HTTP.
+// Service: concentra as regras de negócio e delega acesso a dados ao Repository.
+// O Service NÃO sabe mais como os dados são armazenados.
+
 module.exports = (transacoes) => {
+  const repository = transacoesRepository(transacoes);
+
   const listarTransacoes = () => {
-    return transacoes;
+    return repository.listarTodas();
   };
 
   const cadastrarTransacao = ({ descricao, valor, tipo } = {}) => {
@@ -33,19 +37,21 @@ module.exports = (transacoes) => {
       };
     }
 
-    const gerarIdTransacao = () => {
-      const maxId = transacoes.reduce((max, t) => Math.max(max, t.id || 0), 0);
-      return maxId + 1;
-    };
+  const transacoesExistentes = repository.listarTodas();
 
-    const novaTransacao = {
-      id: gerarIdTransacao(),
-      descricao,
-      valor,
-      tipo,
-    };
+  const maxId = transacoesExistentes.reduce(
+    (max, t) => Math.max(max, t.id || 0),
+    0
+);
 
-    transacoes.push(novaTransacao);
+  const novaTransacao = {
+    id: maxId + 1,
+    descricao,
+    valor,
+    tipo
+};
+
+    repository.criarTransacao(novaTransacao);
 
     return {
       kind: "SUCCESS",
@@ -58,7 +64,7 @@ module.exports = (transacoes) => {
 
   const atualizarTransacao = (idParam, { descricao, valor, tipo } = {}) => {
     const id = parseInt(idParam, 10);
-    const transacao = transacoes.find((t) => t.id === id);
+    const transacao = repository.buscarPorId(id);
 
     if (!transacao) {
       return {
@@ -115,16 +121,14 @@ module.exports = (transacoes) => {
 
   const deletarTransacao = (idParam) => {
     const id = parseInt(idParam, 10);
-    const index = transacoes.findIndex((t) => t.id === id);
+    const transacaoRemovida = repository.deletarTransacao(id);
 
-    if (index === -1) {
+    if (!transacaoRemovida) {
       return {
         kind: "NOT_FOUND",
         body: { message: "Transação não encontrada" },
       };
     }
-
-    const transacaoRemovida = transacoes.splice(index, 1)[0];
 
     return {
       kind: "SUCCESS",
