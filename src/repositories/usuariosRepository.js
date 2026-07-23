@@ -10,15 +10,9 @@ module.exports = (usuarios) => {
     return usuarios.find((usuario) => usuario.email === email);
   };
 
-  const criarUsuario = ({ nome, email, senha }) => {
-    const novoUsuario = {
-      id: usuarios.length + 1,
-      nome,
-      email,
-      senha,
-    };
-    usuarios.push(novoUsuario);
-    return novoUsuario;
+  const criarUsuario = (usuario) => {
+    usuarios.push(usuario);
+    return usuario;
   };
 
   return {

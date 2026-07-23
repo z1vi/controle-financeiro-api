@@ -30,7 +30,14 @@ module.exports = (usuarios) => {
       };
     }
 
-    repository.criarUsuario({ nome, email, senha });
+    const novoUsuario = {
+      id: usuarios.length + 1,
+      nome,
+      email,
+      senha,
+    };
+
+    repository.criarUsuario(novoUsuario);
 
     return {
       kind: "SUCCESS",
