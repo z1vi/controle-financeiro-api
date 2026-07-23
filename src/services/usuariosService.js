@@ -1,8 +1,13 @@
-// Service recebe o array em memória e concentra as regras de negócio.
+// Service: concentra as regras de negócio e delega acesso a dados ao Repository.
+// O Service NÃO sabe mais como os dados são armazenados.
+
+const usuariosRepository = require("../repositories/usuariosRepository");
 
 module.exports = (usuarios) => {
+  const repository = usuariosRepository(usuarios);
+
   const listarUsuarios = () => {
-    return usuarios;
+    return repository.listarTodos();
   };
 
   const cadastrarUsuario = ({ nome, email, senha } = {}) => {
@@ -15,38 +20,29 @@ module.exports = (usuarios) => {
       };
     }
 
-
-    if (usuarios.some((usuario) => usuario.email === email)) {
+    const usuarioExistente = repository.buscarPorEmail(email);
+    if (usuarioExistente) {
       return {
         kind: "VALIDATION",
         body: {
-          message: "Já existe um usuário cadastrado com este e-mail.",
+          message: "Usuário já cadastrado",
         },
       };
     }
 
-
-    const novoUsuario = {
-      id: usuarios.length + 1,
-      nome,
-      email,
-      senha,
-    };
-
-    usuarios.push(novoUsuario);
+    repository.criarUsuario({ nome, email, senha });
 
     return {
       kind: "SUCCESS",
       body: {
         message: "Usuário cadastrado com sucesso!",
-        usuario: novoUsuario,
+        usuario: nome,
       },
     };
-
   };
 
   const loginUsuario = ({ email, senha } = {}) => {
-    const usuarioEncontrado = usuarios.find((usuario) => usuario.email === email);
+    const usuarioEncontrado = repository.buscarPorEmail(email);
 
     if (!usuarioEncontrado) {
       return {
