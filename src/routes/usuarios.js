@@ -2,11 +2,11 @@ const express = require("express");
 
 const usuariosController = require("../controllers/usuariosController");
 
-// Factory: cria o router já “amarrado” ao array de usuários em memória.
-// Isso permite reaproveitar o controller sem depender de variáveis globais.
-module.exports = (usuarios) => {
+// Factory: cria o router já “amarrado” ao controller.
+// O controller agora usa o banco de dados em vez de array em memória.
+module.exports = () => {
   const usuarioRouter = express.Router();
-  const controller = usuariosController(usuarios);
+  const controller = usuariosController();
 
   // GET /users/
   // Retorna todos os usuários.

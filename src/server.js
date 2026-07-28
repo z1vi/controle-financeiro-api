@@ -5,19 +5,15 @@ const app = express();
 // Permite que o Express entenda `req.body` como JSON
 app.use(express.json());
 
-// Armazenamento em memória (arrays).
-
-const usuarios = [];
-
 // Página inicial (teste rápido se o servidor está vivo)
 app.get("/", (req, res) => {
   res.send("Servidor rodando! Acesse /users ou /transactions para interagir com a API.");
 });
 
 
-// Rotas de usuários (Factory recebe o array em memória)
+// Rotas de usuários (agora usa banco de dados via Knex)
 const usuarioRouter = require("./routes/usuarios");
-app.use("/users", usuarioRouter(usuarios));
+app.use("/users", usuarioRouter());
 
 // Armazenamento em memória (array) para transações.
 // A lógica de CRUD fica nos controllers/rotas dedicados.

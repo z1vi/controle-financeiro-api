@@ -1,16 +1,21 @@
 // Service: concentra as regras de negócio e delega acesso a dados ao Repository.
 // O Service NÃO sabe mais como os dados são armazenados.
+// Agora trabalha de forma assíncrona com o banco de dados.
 
 const usuariosRepository = require("../repositories/usuariosRepository");
 
-module.exports = (usuarios) => {
-  const repository = usuariosRepository(usuarios);
+module.exports = () => {
+  const repository = usuariosRepository();
 
-  const listarUsuarios = () => {
-    return repository.listarTodos();
+  const listarUsuarios = async () => {
+    const usuarios = await repository.listarTodos();
+    return {
+      kind: "SUCCESS",
+      body: usuarios,
+    };
   };
 
-  const cadastrarUsuario = ({ nome, email, senha } = {}) => {
+  const cadastrarUsuario = async ({ nome, email, senha } = {}) => {
     if (!nome || !email || !senha) {
       return {
         kind: "VALIDATION",
@@ -20,7 +25,7 @@ module.exports = (usuarios) => {
       };
     }
 
-    const usuarioExistente = repository.buscarPorEmail(email);
+    const usuarioExistente = await repository.buscarPorEmail(email);
     if (usuarioExistente) {
       return {
         kind: "VALIDATION",
@@ -31,13 +36,12 @@ module.exports = (usuarios) => {
     }
 
     const novoUsuario = {
-      id: usuarios.length + 1,
       nome,
       email,
       senha,
     };
 
-    repository.criarUsuario(novoUsuario);
+    await repository.criarUsuario(novoUsuario);
 
     return {
       kind: "SUCCESS",
@@ -48,8 +52,8 @@ module.exports = (usuarios) => {
     };
   };
 
-  const loginUsuario = ({ email, senha } = {}) => {
-    const usuarioEncontrado = repository.buscarPorEmail(email);
+  const loginUsuario = async ({ email, senha } = {}) => {
+    const usuarioEncontrado = await repository.buscarPorEmail(email);
 
     if (!usuarioEncontrado) {
       return {

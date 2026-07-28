@@ -1,18 +1,18 @@
 const usuariosService = require("../services/usuariosService");
 
-module.exports = (usuarios) => {
-  const service = usuariosService(usuarios);
+module.exports = () => {
+  const service = usuariosService();
 
   // Controller “fino”: só extrai dados da req e delega ao service.
-  const listarUsuarios = (req, res) => {
-    const body = service.listarUsuarios();
-    return res.status(200).json(body);
+  const listarUsuarios = async (req, res) => {
+    const resultado = await service.listarUsuarios();
+    return res.status(200).json(resultado.body);
   };
 
-  const cadastrarUsuario = (req, res) => {
+  const cadastrarUsuario = async (req, res) => {
     const { nome, email, senha } = req.body || {};
 
-    const resultado = service.cadastrarUsuario({
+    const resultado = await service.cadastrarUsuario({
       nome,
       email,
       senha,
@@ -23,10 +23,10 @@ module.exports = (usuarios) => {
     return res.status(statusCode).json(resultado.body);
   };
 
-  const loginUsuario = (req, res) => {
+  const loginUsuario = async (req, res) => {
     const { email, senha } = req.body || {};
 
-    const resultado = service.loginUsuario({ email, senha });
+    const resultado = await service.loginUsuario({ email, senha });
 
     const statusCode = resultado.kind === "AUTH" ? 401 : 200;
 

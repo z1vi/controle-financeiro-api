@@ -1,24 +1,33 @@
 // Repository: encapsula o acesso aos dados.
-// O Service não sabe mais como os dados são armazenados.
+// Agora usa o banco de dados (SQLite via Knex) em vez de array em memória.
 
-module.exports = (usuarios) => {
-  const listarTodos = () => {
-    return usuarios;
+const knex = require("../database/knex");
+
+module.exports = () => {
+  const TABELA = "usuarios";
+
+  const listarTodos = async () => {
+    return knex(TABELA).select("*");
   };
 
-  const buscarPorEmail = (email) => {
-    return usuarios.find((usuario) => usuario.email === email);
+  const buscarPorEmail = async (email) => {
+    return knex(TABELA).where({ email }).first();
   };
 
-  const criarUsuario = (usuario) => {
-    usuarios.push(usuario);
+  const criarUsuario = async (usuario) => {
+    await knex(TABELA).insert(usuario);
     return usuario;
+  };
+
+  const buscarPorId = async (id) => {
+    return knex(TABELA).where({ id }).first();
   };
 
   return {
     listarTodos,
     buscarPorEmail,
     criarUsuario,
+    buscarPorId,
   };
 };
 
