@@ -1,15 +1,12 @@
 const balanceService = require("../services/balanceService");
 
-module.exports = (transacoes) => {
-  const service = balanceService(transacoes);
+module.exports = () => {
+  const service = balanceService();
 
-  const obterSaldo = (req, res) => {
-    const resultado = service.calcularSaldo();
+  const obterSaldo = async (req, res) => {
+    const resultado = await service.calcularSaldo();
     return res.status(200).json(resultado.body);
   };
 
-  return {
-    obterSaldo,
-  };
+  return { obterSaldo };
 };
-

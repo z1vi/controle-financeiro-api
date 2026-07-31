@@ -35,6 +35,7 @@ module.exports = () => {
       };
     }
 
+
     const novoUsuario = {
       nome,
       email,

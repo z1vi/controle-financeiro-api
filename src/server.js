@@ -1,36 +1,24 @@
 const express = require("express");
-
 const app = express();
 
-// Permite que o Express entenda `req.body` como JSON
 app.use(express.json());
 
-// Página inicial (teste rápido se o servidor está vivo)
 app.get("/", (req, res) => {
-  res.send("Servidor rodando! Acesse /users ou /transactions para interagir com a API.");
+  res.send("Servidor rodando! Acesse /users, /transactions ou /balance para interagir com a API.");
 });
 
-
-// Rotas de usuários (agora usa banco de dados via Knex)
+// Rotas de usuários
 const usuarioRouter = require("./routes/usuarios");
 app.use("/users", usuarioRouter());
 
-// Armazenamento em memória (array) para transações.
-// A lógica de CRUD fica nos controllers/rotas dedicados.
-// O server apenas injeta a dependência (o array) nas rotas.
-const transacoes = [];
-
-// Rotas de transações
+// Rotas de transações (agora usa banco de dados via Knex)
 const transacoesRouter = require("./routes/transacoes");
-app.use("/transactions", transacoesRouter(transacoes));
+app.use("/transactions", transacoesRouter());
 
-// Rotas de balanço (usa o mesmo array de transações)
+// Rotas de balanço (também lê do banco via repository)
 const balanceRouter = require("./routes/balance");
-app.use("/balance", balanceRouter(transacoes));
+app.use("/balance", balanceRouter());
 
-// Inicia o servidor
 app.listen(3000, () => {
   console.log("🚀 Servidor rodando em http://localhost:3000");
 });
-
-

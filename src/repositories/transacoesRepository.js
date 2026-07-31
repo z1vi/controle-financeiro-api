@@ -1,33 +1,44 @@
 // Repository: encapsula o acesso aos dados das transações.
-// O Service não sabe mais como os dados são armazenados.
+// Agora usa o banco de dados (SQLite via Knex) em vez de array em memória.
 
-module.exports = (transacoes) => {
-  const listarTodas = () => {
-    return transacoes;
+const knex = require("../database/knex");
+
+module.exports = () => {
+  const TABELA = "transacoes";
+
+  const listarTodas = async () => {
+    return knex(TABELA).select("*");
   };
 
-  const buscarPorId = (id) => {
-    return transacoes.find((t) => t.id === id);
+  const buscarPorId = async (id) => {
+    return knex(TABELA).where({ id }).first();
   };
 
-  const criarTransacao = (transacao) => {
-    transacoes.push(transacao);
+  const criarTransacao = async (transacao) => {
+    const [id] = await knex(TABELA).insert(transacao);
+    return { id, ...transacao };
+  };
+
+  // MÉTODO NOVO: antes não existia porque o array era mutado direto no service.
+  const atualizarTransacao = async (id, transacaoAtualizada) => {
+    const transacao = await knex(TABELA).where({ id }).first();
+    if (!transacao) return null;
+    await knex(TABELA).where({ id }).update(transacaoAtualizada);
+    return { id, ...transacaoAtualizada };
+  }
+
+  const deletarTransacao = async (id) => {
+    const transacao = await knex(TABELA).where({ id }).first();
+    if (!transacao) return null;
+    await knex(TABELA).where({ id }).del();
     return transacao;
-  };
-
-  const deletarTransacao = (id) => {
-    const index = transacoes.findIndex((t) => t.id === id);
-    if (index === -1) {
-      return null;
-    }
-    const [transacaoRemovida] = transacoes.splice(index, 1);
-    return transacaoRemovida;
   };
 
   return {
     listarTodas,
     buscarPorId,
     criarTransacao,
+    atualizarTransacao,
     deletarTransacao,
   };
 };
