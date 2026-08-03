@@ -9,9 +9,11 @@ const balanceService = require("../services/balanceService");
 module.exports = () => {
   const service = balanceService();
 
-  // GET /balance → calcula e retorna o saldo atual
+  // GET /balance → calcula e retorna o saldo atual do usuário
+  // O usuario_id vem via query string: /balance?usuario_id=1
   const obterSaldo = async (req, res) => {
-    const resultado = await service.calcularSaldo();
+    const usuario_id = Number(req.query.usuario_id);
+    const resultado = await service.calcularSaldo(usuario_id);
     return res.status(200).json(resultado.body);
   };
 

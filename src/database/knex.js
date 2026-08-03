@@ -14,7 +14,15 @@ const connection = knex({
         filename: './src/database/controle-financeiro.db'
     },
     // Necessário no SQLite para permitir campos sem valor default (NULL)
-    useNullAsDefault: true
+    useNullAsDefault: true,
+    // O SQLite NÃO valida foreign keys por padrão.
+    // Este hook ativa a verificação (PRAGMA foreign_keys = ON)
+    // em cada conexão criada pelo pool.
+    pool: {
+        afterCreate: (conn, done) => {
+            conn.run('PRAGMA foreign_keys = ON', () => done(null, conn));
+        }
+    }
 });
 
 module.exports = connection;
