@@ -1,12 +1,18 @@
-// Service: concentra as regras de negócio e delega acesso a dados ao Repository.
-// O Service NÃO sabe mais como os dados são armazenados.
-// Agora trabalha de forma assíncrona com o banco de dados.
+// ============================================================
+// services/usuariosService.js - Regras de negócio de usuários
+// ============================================================
+// Concentra as regras de negócio e delega o acesso a dados ao
+// Repository. O Service NÃO sabe como os dados são armazenados
+// (agora via SQLite + Knex, de forma assíncrona).
+// Padrão de retorno: { kind, body }
+//   - kind: "SUCCESS" | "VALIDATION" | "AUTH"
 
 const usuariosRepository = require("../repositories/usuariosRepository");
 
 module.exports = () => {
   const repository = usuariosRepository();
 
+  // GET → lista todos os usuários
   const listarUsuarios = async () => {
     const usuarios = await repository.listarTodos();
     return {
@@ -15,7 +21,9 @@ module.exports = () => {
     };
   };
 
+  // POST → cria um novo usuário (com validações de negócio)
   const cadastrarUsuario = async ({ nome, email, senha } = {}) => {
+    // 1) Campos obrigatórios
     if (!nome || !email || !senha) {
       return {
         kind: "VALIDATION",
@@ -25,6 +33,7 @@ module.exports = () => {
       };
     }
 
+    // 2) Evita cadastro duplicado (email único no banco)
     const usuarioExistente = await repository.buscarPorEmail(email);
     if (usuarioExistente) {
       return {
@@ -35,7 +44,7 @@ module.exports = () => {
       };
     }
 
-
+    // 3) Monta o objeto e persiste no banco
     const novoUsuario = {
       nome,
       email,
@@ -53,9 +62,12 @@ module.exports = () => {
     };
   };
 
+  // POST /login → autentica o usuário (email + senha)
   const loginUsuario = async ({ email, senha } = {}) => {
+    // 1) Busca o usuário pelo email
     const usuarioEncontrado = await repository.buscarPorEmail(email);
 
+    // 2) Não existe usuário com esse email
     if (!usuarioEncontrado) {
       return {
         kind: "AUTH",
@@ -65,6 +77,7 @@ module.exports = () => {
       };
     }
 
+    // 3) Senha incorreta (comparação simples - sem hash por enquanto)
     if (usuarioEncontrado.senha !== senha) {
       return {
         kind: "AUTH",
@@ -74,6 +87,7 @@ module.exports = () => {
       };
     }
 
+    // 4) Credenciais corretas → login bem-sucedido
     return {
       kind: "SUCCESS",
       body: {
