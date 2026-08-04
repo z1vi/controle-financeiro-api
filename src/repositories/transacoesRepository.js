@@ -42,7 +42,7 @@ module.exports = () => {
     if (usuarioId) query.where({ usuario_id: usuarioId });
     const transacao = await query.first();
     if (!transacao) return null;
-    await knex(TABELA).where({ id }).update(transacaoAtualizada);
+    await query.update(transacaoAtualizada);
     return { id, ...transacaoAtualizada };
   }
 

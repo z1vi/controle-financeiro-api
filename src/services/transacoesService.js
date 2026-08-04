@@ -106,9 +106,14 @@ module.exports = () => {
   };
 
   // DELETE → remove uma transação pelo id (apenas se pertencer ao usuário)
-  const deletarTransacao = async (idParam, usuario_id) => {
-    const id = parseInt(idParam, 10);
-    const transacaoRemovida = await repository.deletarTransacao(id, usuario_id);
+  const deletarTransacao - async (idParam, usuario_id) => {
+    // 1) Valida o id recebido na URL
+    if (Number.isNaN(id)) {
+      return {
+        kind: "VALIDATION",
+        body: { message: "ID inválido." }
+      };
+    }
 
     // Repositório retorna null quando a transação não existe / não pertence ao usuário
     if (!transacaoRemovida) {
