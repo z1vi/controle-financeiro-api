@@ -105,9 +105,10 @@ module.exports = () => {
     return { kind: "SUCCESS", body: { message: "Transação atualizada com sucesso!", transacao: transacaoAtualizada } };
   };
 
-  // DELETE → remove uma transação pelo id (apenas se pertencer ao usuário)
-  const deletarTransacao - async (idParam, usuario_id) => {
+// DELETE → remove uma transação pelo id (apenas se pertencer ao usuário)
+  const deletarTransacao = async (idParam, usuario_id) => {
     // 1) Valida o id recebido na URL
+    const id = parseInt(idParam, 10);
     if (Number.isNaN(id)) {
       return {
         kind: "VALIDATION",
@@ -115,7 +116,8 @@ module.exports = () => {
       };
     }
 
-    // Repositório retorna null quando a transação não existe / não pertence ao usuário
+    // 2) Remove a transação (repositório retorna null quando não existe / não pertence ao usuário)
+    const transacaoRemovida = await repository.deletarTransacao(id, usuario_id);
     if (!transacaoRemovida) {
       return { kind: "NOT_FOUND", body: { message: "Transação não encontrada" } };
     }
