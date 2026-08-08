@@ -1,29 +1,36 @@
 // ============================================================
 // routes/transacoes.js - Definição das rotas de transações
 // ============================================================
-// Padrão de arquitetura: Router (aqui) → Controller → Service → Repository
-// Neste arquivo apenas MAPEAMOS URLs e verbos HTTP para as actions do controller.
+// Responsabilidade: apenas mapear URLs e verbos HTTP para as
+// actions do controller, aplicando o middleware de autenticação.
+//
+// Conceito: rotas protegidas exigem autenticação (authMiddleware).
 
 const express = require("express");
 const transacoesController = require("../controllers/transacoesController");
+const authMiddleware = require("../middlewares/authMiddleware");
+const asyncHandler = require("../middlewares/asyncHandler");
 
 module.exports = () => {
   const router = express.Router();
   const controller = transacoesController();
 
-  // GET /transactions → lista todas as transações
-  router.get("/", controller.listarTransacoes);
+  // Todas as operações de transação exigem usuário autenticado
+  router.use(authMiddleware);
 
-  // POST /transactions → cadastra nova transação
+  // GET /transacoes → lista todas as transações do usuário autenticado
+  router.get("/", asyncHandler(controller.listarTransacoes));
+
+  // POST /transacoes → cadastra nova transação
   // Body esperado: { descricao: string, valor: number, tipo: "entrada" | "saida" }
-  router.post("/", controller.cadastrarTransacao);
+  router.post("/", asyncHandler(controller.cadastrarTransacao));
 
-  // PUT /transactions/:id → atualiza parcialmente a transação informada
+  // PUT /transacoes/:id → atualiza parcialmente a transação informada
   // Body esperado (pelo menos 1 campo): { descricao?, valor?, tipo? }
-  router.put("/:id", controller.atualizarTransacao);
+  router.put("/:id", asyncHandler(controller.atualizarTransacao));
 
-  // DELETE /transactions/:id → remove a transação informada
-  router.delete("/:id", controller.deletarTransacao);
+  // DELETE /transacoes/:id → remove a transação informada
+  router.delete("/:id", asyncHandler(controller.deletarTransacao));
 
   return router;
 };

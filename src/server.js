@@ -5,10 +5,16 @@
 //   - Criar e configurar a aplicação Express
 //   - Registrar os middlewares globais
 //   - Conectar os "routers" de cada módulo ao app
+//   - Registrar o middleware global de tratamento de erros
 //   - Subir o servidor na porta definida
-// ============================================================
+//
+// Conceito: separação entre a criação da app (exportada para
+// permitir testes) e a inicialização do servidor (listen).
 
 const express = require("express");
+const errorHandler = require("./middlewares/errorHandler");
+
+// ========== Cria e configura a aplicação ==========
 const app = express();
 
 // Middleware global: converte automaticamente o corpo das requisições
@@ -16,21 +22,38 @@ const app = express();
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Servidor rodando! Acesse /users, /transactions ou /balance para interagir com a API.");
+  res.send("Servidor rodando! Acesse /auth, /usuarios, /transacoes ou /saldo para interagir com a API.");
 });
 
-// Rotas de usuários
+// ========== Rotas ==========
+// Autenticação (register/login)
+const authRouter = require("./routes/authRoutes");
+app.use("/auth", authRouter());
+
+// Usuários
 const usuarioRouter = require("./routes/usuarios");
-app.use("/users", usuarioRouter());
+app.use("/usuarios", usuarioRouter());
 
-// Rotas de transações (agora usa banco de dados via Knex)
+// Transações (exige autenticação via authMiddleware)
 const transacoesRouter = require("./routes/transacoes");
-app.use("/transactions", transacoesRouter());
+app.use("/transacoes", transacoesRouter());
 
-// Rotas de balanço (também lê do banco via repository)
+// Balanço / Saldo (exige autenticação via authMiddleware)
 const balanceRouter = require("./routes/balance");
-app.use("/balance", balanceRouter());
+app.use("/saldo", balanceRouter());
 
-app.listen(3000, () => {
-  console.log("🚀 Servidor rodando em http://localhost:3000");
-});
+// ========== Middleware global de erros ==========
+// DEVE ser registrado por último, depois de todas as rotas.
+app.use(errorHandler);
+
+// ========== Exporta a app (permite futuros testes) ==========
+module.exports = app;
+
+// Apenas inicia o servidor se este arquivo for executado diretamente
+// (node src/server.js). Em testes, o app é importado sem iniciar.
+if (require.main === module) {
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  });
+}

@@ -1,17 +1,17 @@
 // ============================================================
-// validadores.js - Validações reutilizáveis das transações
+// validators/transacaoValidator.js - Validações das transações
 // ============================================================
+// Módulo reutilizável com as regras de validação de uma transação.
 // Convenção de retorno:
-//   - validarTipo( tipo )  → boolean (true = válido, false = inválido)
-//   - validarValor( valor ) → string com mensagem de erro, ou null se OK
+//   - validarTipo( tipo )        → boolean (true = válido)
+//   - validarValor( valor )      → string com mensagem de erro, ou null se OK
+//
+// Conceito: separar validação em módulo próprio facilita testes
+// e reuso entre service e controllers.
 
 const validarTipo = (tipo) => {
   // Permitimos apenas 'entrada' (crédito) e 'saida' (débito)
-  if (tipo === "entrada" || tipo === "saida") {
-    return true;
-  }
-
-  return false;
+  return tipo === "entrada" || tipo === "saida";
 };
 
 const validarValor = (valor) => {
@@ -38,4 +38,3 @@ module.exports = {
   validarTipo,
   validarValor,
 };
-

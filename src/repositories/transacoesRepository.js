@@ -4,15 +4,18 @@
 // Encapsula TODAS as operações de banco das transações.
 // Única camada que conhece o SQLite (via Knex). Services e
 // controllers não sabem como os dados são armazenados.
+//
+// Nomenclatura padronizada: usuarioId (camelCase) nas variáveis
+// JS, mapeado para usuario_id na coluna do banco SQLite.
+//
+// Conceito: Repository - isolamento de acesso a dados.
 
 const knex = require("../database/knex");
 
 module.exports = () => {
-  // Nome da tabela no banco de dados
   const TABELA = "transacoes";
 
   // SELECT * FROM transacoes [WHERE usuario_id = ?]
-  // Retorna todas as transações (ou apenas as do usuário informado)
   const listarTodas = async (usuarioId = null) => {
     const query = knex(TABELA).select("*");
     if (usuarioId) query.where({ usuario_id: usuarioId });
@@ -27,15 +30,20 @@ module.exports = () => {
   };
 
   // INSERT INTO transacoes (...) VALUES (...)
-  // Recebe { descricao, valor, tipo, usuario_id }
-  // Retorna o id gerado pelo SQLite (auto-incremento) e monta o objeto completo
+  // Recebe { descricao, valor, tipo, usuarioId }
+  // Mapeia usuarioId → usuario_id para o banco SQLite
   const criarTransacao = async (transacao) => {
-    const [id] = await knex(TABELA).insert(transacao);
-    return { id, ...transacao };
+    const dadosBanco = {
+      descricao: transacao.descricao,
+      valor: transacao.valor,
+      tipo: transacao.tipo,
+      usuario_id: transacao.usuarioId,
+    };
+    const [id] = await knex(TABELA).insert(dadosBanco);
+    return { id, ...dadosBanco };
   };
 
   // UPDATE transacoes SET ... WHERE id = ? [AND usuario_id = ?]
-  // Verifica se a transação existe (e pertence ao usuário) antes de atualizar.
   // Retorna null se não existir/não pertencer.
   const atualizarTransacao = async (id, transacaoAtualizada, usuarioId = null) => {
     const query = knex(TABELA).where({ id });
@@ -44,10 +52,9 @@ module.exports = () => {
     if (!transacao) return null;
     await query.update(transacaoAtualizada);
     return { id, ...transacaoAtualizada };
-  }
+  };
 
   // DELETE FROM transacoes WHERE id = ? [AND usuario_id = ?]
-  // Verifica se a transação existe (e pertence ao usuário) antes de remover.
   // Retorna null se não existir/não pertencer.
   const deletarTransacao = async (id, usuarioId = null) => {
     const query = knex(TABELA).where({ id });

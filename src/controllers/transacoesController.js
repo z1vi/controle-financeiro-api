@@ -4,7 +4,11 @@
 // Controller "fino" (thin controller):
 //   - Extrai os dados da requisição (req.params / req.body)
 //   - Delega toda a regra de negócio ao Service
-//   - Traduz o "kind" retornado pelo Service em status HTTP adequado
+//   - Traduz o "kind" retornado pelo Service em status HTTP
+//
+// O usuarioId vem do authMiddleware (req.usuarioId). No futuro,
+// ele virá da identidade do JWT e NÃO da query string do cliente.
+//
 // Regras de mapeamento:
 //   kind === "SUCCESS"     → 201 (criação)
 //   kind === "VALIDATION"  → 400 (Bad Request)
@@ -16,29 +20,30 @@ const transacoesServiceFactory = require("../services/transacoesService");
 module.exports = () => {
   const service = transacoesServiceFactory();
 
-  // GET /transactions → sempre retorna 200 com a lista de transações do usuário
-  // O usuario_id vem via query string: /transactions?usuario_id=1
+  // GET /transacoes → lista as transações do usuário autenticado
   const listarTransacoes = async (req, res) => {
-    const usuario_id = Number(req.query.usuario_id);
-    const resultado = await service.listarTransacoes(usuario_id);
+    const usuarioId = req.usuarioId;
+    const resultado = await service.listarTransacoes(usuarioId);
     return res.status(200).json(resultado.body);
   };
 
-  // POST /transactions → 201 se criado com sucesso, 400 se validação falhar
-  // Body esperado: { descricao, valor, tipo, usuario_id }
+  // POST /transacoes → 201 se criado, 400 se validação falhar
+  // Body esperado: { descricao, valor, tipo }
   const cadastrarTransacao = async (req, res) => {
-    const { descricao, valor, tipo, usuario_id } = req.body || {};
-    const resultado = await service.cadastrarTransacao({ descricao, valor, tipo, usuario_id });
+    const { descricao, valor, tipo } = req.body || {};
+    const usuarioId = req.usuarioId;
+    const resultado = await service.cadastrarTransacao({ descricao, valor, tipo, usuarioId });
     const statusCode = resultado.kind === "SUCCESS" ? 201 : 400;
     return res.status(statusCode).json(resultado.body);
   };
 
-  // PUT /transactions/:id → 200 sucesso, 400 validação, 404 não encontrada
-  // Body esperado: { descricao?, valor?, tipo?, usuario_id }
+  // PUT /transacoes/:id → 200 sucesso, 400 validação, 404 não encontrada
+  // Body esperado: { descricao?, valor?, tipo? }
   const atualizarTransacao = async (req, res) => {
     const { id } = req.params;
-    const { descricao, valor, tipo, usuario_id } = req.body || {};
-    const resultado = await service.atualizarTransacao(id, { descricao, valor, tipo, usuario_id });
+    const { descricao, valor, tipo } = req.body || {};
+    const usuarioId = req.usuarioId;
+    const resultado = await service.atualizarTransacao(id, { descricao, valor, tipo, usuarioId });
     const statusCode =
       resultado.kind === "NOT_FOUND" ? 404 :
       resultado.kind === "VALIDATION" ? 400 :
@@ -46,12 +51,11 @@ module.exports = () => {
     return res.status(statusCode).json(resultado.body);
   };
 
-  // DELETE /transactions/:id → 200 se removida, 404 se não encontrada
-  // O usuario_id vem via query string: /transactions/:id?usuario_id=1
+  // DELETE /transacoes/:id → 200 se removida, 404 se não encontrada
   const deletarTransacao = async (req, res) => {
     const { id } = req.params;
-    const usuario_id = Number(req.query.usuario_id);
-    const resultado = await service.deletarTransacao(id, usuario_id);
+    const usuarioId = req.usuarioId;
+    const resultado = await service.deletarTransacao(id, usuarioId);
     const statusCode = resultado.kind === "NOT_FOUND" ? 404 : 200;
     return res.status(statusCode).json(resultado.body);
   };

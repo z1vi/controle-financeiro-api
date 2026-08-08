@@ -2,18 +2,20 @@
 // controllers/balanceController.js
 // ============================================================
 // Controller "fino": apenas chama o Service de saldo e devolve
-// a resposta com status HTTP 200.
+// a resposta com status HTTP. O usuarioId vem do authMiddleware
+// (req.usuarioId), e no futuro da identidade autenticada via JWT.
+//
+// Conceito: acesso ao recurso sensível (saldo) exige autenticação.
 
 const balanceService = require("../services/balanceService");
 
 module.exports = () => {
   const service = balanceService();
 
-  // GET /balance → calcula e retorna o saldo atual do usuário
-  // O usuario_id vem via query string: /balance?usuario_id=1
+  // GET /saldo → calcula e retorna o saldo do usuário autenticado
   const obterSaldo = async (req, res) => {
-    const usuario_id = Number(req.query.usuario_id);
-    const resultado = await service.calcularSaldo(usuario_id);
+    const usuarioId = req.usuarioId;
+    const resultado = await service.calcularSaldo(usuarioId);
     return res.status(200).json(resultado.body);
   };
 
