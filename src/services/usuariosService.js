@@ -21,21 +21,45 @@ module.exports = () => {
 
   // Cria um novo usuário no banco de dados. Retorna o usuário criado (sem a senha).
   const criarUsuario = async (nome, email, senha) => {
+    if (!nome || !email || !senha) {
+      return {
+        kind: "VALIDATION",
+        body: { message: "Todos os campos são obrigatórios" },
+      };
+    }
+
+    const usuarioExistente = await repository.buscarPorEmail(email);
+    if (usuarioExistente) {
+      return {
+        kind: "VALIDATION",
+        body: { message: "Usuário já cadastrado" },
+      };
+    }
+
     const senhaHash = await bcrypt.hash(senha, 10);
 
-    const usuarioCriado = await repository.criar({nome, email, senha: senhaHash});
+    const usuarioCriado = await repository.criarUsuario({
+      nome,
+      email,
+      senha: senhaHash,
+    });
+
+    const { senha: _senha, ...usuarioPublico } = usuarioCriado;
 
     return {
       kind: "SUCCESS",
-      body: usuarioCriado,
+      body: {
+        message: "Usuário cadastrado com sucesso!",
+        usuario: usuarioPublico,
+      },
     };
-  }
+  };
 
-  //Verifica se o usuário existe no banco de dados pelo email. Retorna true ou false.
+  // Verifica se o usuário existe no banco de dados pelo email. Retorna true ou false.
   const usuarioExiste = async (email) => {
     const usuario = await repository.buscarPorEmail(email);
     return !!usuario;
-  }
+  };
 
   // GET → lista todos os usuários (sem expor a senha)
   const listarUsuarios = async () => {

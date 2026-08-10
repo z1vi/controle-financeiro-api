@@ -16,7 +16,10 @@ module.exports = () => {
   const listarTodos = async () => {
     return knex(TABELA).select("*");
   };
-
+  const criarUsuario = async (usuario) => {
+    const [novoUsuario] = await knex(TABELA).insert(usuario).returning("*");
+    return novoUsuario;
+  }
   // SELECT * FROM usuarios WHERE email = ? LIMIT 1
   const buscarPorEmail = async (email) => {
     return knex(TABELA).where({ email }).first();
