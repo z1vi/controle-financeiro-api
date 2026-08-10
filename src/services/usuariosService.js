@@ -14,9 +14,28 @@
 // Conceito: cada service tem uma responsabilidade única.
 
 const usuariosRepository = require("../repositories/usuariosRepository");
+const bcrypt = require("bcrypt");
 
 module.exports = () => {
   const repository = usuariosRepository();
+
+  // Cria um novo usuário no banco de dados. Retorna o usuário criado (sem a senha).
+  const criarUsuario = async (nome, email, senha) => {
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const usuarioCriado = await repository.criar({nome, email, senha: senhaHash});
+
+    return {
+      kind: "SUCCESS",
+      body: usuarioCriado,
+    };
+  }
+
+  //Verifica se o usuário existe no banco de dados pelo email. Retorna true ou false.
+  const usuarioExiste = async (email) => {
+    const usuario = await repository.buscarPorEmail(email);
+    return !!usuario;
+  }
 
   // GET → lista todos os usuários (sem expor a senha)
   const listarUsuarios = async () => {
