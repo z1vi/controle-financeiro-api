@@ -74,7 +74,29 @@ module.exports = () => {
     };
   };
 
+  const deletarUsuario = async (idParam) => {
+    const id = parseInt(idParam, 10);
+    if (Number.isNaN(id)) {
+      return { kind: "VALIDATION", body: { message: "ID inválido." } };
+    }
+
+    const usuarioRemovido = await repository.deletarUsuario(id);
+    if (!usuarioRemovido) {
+      return { kind: "NOT_FOUND", body: { message: "Usuário não encontrado." } };
+    }
+
+    return {
+      kind: "SUCCESS",
+      body: {
+        message: "Usuário removido com sucesso.",
+        usuario: usuarioRemovido,
+      },
+    };
+  };
+
   return {
     listarUsuarios,
+    criarUsuario,
+    deletarUsuario,
   };
 };

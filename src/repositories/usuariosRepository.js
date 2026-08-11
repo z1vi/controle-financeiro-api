@@ -33,10 +33,19 @@ module.exports = () => {
     return knex(TABELA).where({ id }).first();
   };
 
+  // DELETE FROM usuarios WHERE id = ?
+  const deletarUsuario = async (id) => {
+    const usuario = await buscarPorId(id);
+    if (!usuario) return null;
+    await knex(TABELA).where({ id }).del();
+    return usuario;
+  };
+
   return {
     listarTodos,
     buscarPorEmail,
     criarUsuario,
     buscarPorId,
+    deletarUsuario,
   };
 };

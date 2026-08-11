@@ -14,18 +14,16 @@ module.exports = () => {
   const usuarioRouter = express.Router();
   const controller = usuariosController();
 
-  // GET /usuarios → retorna todos os usuários cadastrados
-  usuarioRouter.get("/", asyncHandler(controller.listarUsuarios));
+  // GET /usuarios - Lista todos os usuários
+  usuarioRouter.get(
+    "/",
+    asyncHandler(controller.listarUsuarios)
+  );
+  // POST /usuarios - Cria um novo usuário
+  usuarioRouter.post(
+    "/",
+    asyncHandler(controller.criarUsuario)
+  );
 
-
-  // POST /usuarios → cria um novo usuário
-  usuarioRouter.post("/", asyncHandler(controller.criarUsuario));
-
-  //DELETE /usuarios/:id → deleta um usuário pelo ID
-  usuarioRouter.delete("/:id", asyncHandler(controller.deletarUsuario));
-
-  
   return usuarioRouter;
 };
-
-  
