@@ -17,5 +17,15 @@ module.exports = () => {
   // GET /usuarios → retorna todos os usuários cadastrados
   usuarioRouter.get("/", asyncHandler(controller.listarUsuarios));
 
+
+  // POST /usuarios → cria um novo usuário
+  usuarioRouter.post("/", asyncHandler(controller.criarUsuario));
+
+  //DELETE /usuarios/:id → deleta um usuário pelo ID
+  usuarioRouter.delete("/:id", asyncHandler(controller.deletarUsuario));
+
+  
   return usuarioRouter;
 };
+
+  
