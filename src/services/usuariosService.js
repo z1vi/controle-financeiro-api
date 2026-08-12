@@ -73,7 +73,8 @@ module.exports = () => {
       body: usuariosPublicos,
     };
   };
-
+  
+  // DELETE → remove um usuário pelo ID. Retorna o usuário removido (sem a senha).
   const deletarUsuario = async (idParam) => {
     const id = parseInt(idParam, 10);
     if (Number.isNaN(id)) {

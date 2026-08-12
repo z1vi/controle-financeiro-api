@@ -19,11 +19,19 @@ module.exports = () => {
     "/",
     asyncHandler(controller.listarUsuarios)
   );
+
   // POST /usuarios - Cria um novo usuário
   usuarioRouter.post(
     "/",
     asyncHandler(controller.criarUsuario)
   );
+
+  //DELELTE /usuario/:id - Delete um usuário pelo ID
+  usuarioRouter.delete(
+    "/:id",
+    asyncHandler(controller.deletarUsuario)
+  );
+  
 
   return usuarioRouter;
 };
