@@ -1,28 +1,33 @@
 // ============================================================
-// services/authService.js - Regras de negócio de autenticação
+// services/authService.js - Lógica de autenticação do sistema
 // ============================================================
-// Responsável por registrar (register) e autenticar (login)
-// usuários. Acessa os dados via usuariosRepository.
+// Aqui fica a regra de negócio da autenticação: criar conta,
+// validar dados e fazer login de um usuário.
 //
-// IMPORTANTE: a senha ainda NÃO é armazenada com hash porque o
-// bcrypt será adicionado em uma etapa futura. Quando isso ocorrer,
-// a comparação de senha aqui será via bcrypt.compare() e o retorno
-// incluirá um token JWT.
+// Essa camada conversa com o repositório, mas não conhece
+// detalhes do banco. Ela apenas decide o que fazer com os dados.
 //
-// Padrão de retorno: { kind, body }
+// Padrão de retorno:
+//   { kind, body }
 //   - kind: "SUCCESS" | "VALIDATION" | "AUTH"
 //
-// Conceito: separação da autenticação (auth) da lógica de usuários
-// e transações, preparando o caminho para bcrypt + JWT.
+// Em resumo:
+//   - SUCCESS → operação concluída com sucesso
+//   - VALIDATION → dados inválidos ou ausentes
+//   - AUTH → erro de autenticação (credenciais inválidas)
+//
+// Esse arquivo prepara a aplicação para evoluir com bcrypt + JWT
+// de forma organizada e segura.
 
 const usuariosRepository = require("../repositories/usuariosRepository");
+const bcrypt = require("bcrypt");
 
 module.exports = () => {
   const repository = usuariosRepository();
 
-  // POST /auth/register → cria um novo usuário
+  // POST /auth/register → cria uma nova conta para o usuário
   const register = async ({ nome, email, senha } = {}) => {
-    // 1) Campos obrigatórios
+    // 1) Verifica se os campos essenciais foram enviados
     if (!nome || !email || !senha) {
       return {
         kind: "VALIDATION",
@@ -30,7 +35,7 @@ module.exports = () => {
       };
     }
 
-    // 2) Evita cadastro duplicado (email único no banco)
+    // 2) Evita que o mesmo e-mail seja cadastrado mais de uma vez
     const usuarioExistente = await repository.buscarPorEmail(email);
     if (usuarioExistente) {
       return {
@@ -39,17 +44,18 @@ module.exports = () => {
       };
     }
 
-    // 3) TODO futuro: aqui vamos gerar o hash da senha com bcrypt
-    //    const senhaHash = await bcrypt.hash(senha, 10);
+    // 3) Cria um hash da senha para não armazenar a senha em texto puro
+    const senhaHash = await bcrypt.hash(senha, 10);
+
     const novoUsuario = {
       nome,
       email,
-      senha,
+      senha: senhaHash,
     };
 
     const usuarioCriado = await repository.criarUsuario(novoUsuario);
 
-    // Retorna o usuário SEM a senha
+    // Remove a senha antes de devolver o usuário para o cliente
     const { senha: _senha, ...usuarioPublico } = usuarioCriado;
 
     return {
@@ -61,12 +67,20 @@ module.exports = () => {
     };
   };
 
-  // POST /auth/login → autentica o usuário (email + senha)
+  // POST /auth/login → valida o e-mail e a senha do usuário
   const login = async ({ email, senha } = {}) => {
-    // 1) Busca o usuário pelo email
+    // 1) Confere se o cliente enviou os dados básicos do login
+    if (!email || !senha) {
+      return {
+        kind: "VALIDATION",
+        body: { message: "Email e senha são obrigatórios" },
+      };
+    }
+
+    // 2) Busca o usuário pelo e-mail informado
     const usuarioEncontrado = await repository.buscarPorEmail(email);
 
-    // 2) Não existe usuário com esse email
+    // 3) Se não existir esse usuário, a autenticação falha
     if (!usuarioEncontrado) {
       return {
         kind: "AUTH",
@@ -74,19 +88,21 @@ module.exports = () => {
       };
     }
 
-    // 3) TODO futuro: comparar com bcrypt.compare(senha, usuario.senha)
-    //    Em vez de comparação direta de texto puro.
-    if (usuarioEncontrado.senha !== senha) {
+    // 4) Compara a senha digitada com o hash guardado no banco
+    const senhaValida = await bcrypt.compare(senha, usuarioEncontrado.senha);
+
+    // 5) Se a comparação falhar, as credenciais não são válidas
+    if (!senhaValida) {
       return {
         kind: "AUTH",
         body: { message: "Credenciais inválidas" },
       };
     }
 
-    // 4) TODO futuro: gerar e retornar um token JWT aqui
+    // 6) Aqui futuramente iremos gerar e devolver um token JWT
     //    const token = jwt.sign({ id: usuario.id }, SEGREDO, { expiresIn: "1d" });
 
-    // 5) Credenciais corretas → login bem-sucedido
+    // 7) Se chegou até aqui, o login foi bem-sucedido
     const { senha: _senha, ...usuarioPublico } = usuarioEncontrado;
 
     return {
