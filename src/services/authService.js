@@ -21,6 +21,7 @@
 
 const usuariosRepository = require("../repositories/usuariosRepository");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 module.exports = () => {
   const repository = usuariosRepository();
@@ -99,8 +100,12 @@ module.exports = () => {
       };
     }
 
-    // 6) Aqui futuramente iremos gerar e devolver um token JWT
-    //    const token = jwt.sign({ id: usuario.id }, SEGREDO, { expiresIn: "1d" });
+    // 6) gera um token JWT para o usuário logado (payload mínimo: id e email)
+    const token = jwt.sign(
+      {id: usuarioEncontrado.id},
+      process.env.JWT_SECRET,
+      {expiresIn: "1h"}
+    );
 
     // 7) Se chegou até aqui, o login foi bem-sucedido
     const { senha: _senha, ...usuarioPublico } = usuarioEncontrado;
