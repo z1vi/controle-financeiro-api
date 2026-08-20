@@ -14,6 +14,9 @@
 const express = require("express");
 const errorHandler = require("./middlewares/errorHandler");
 
+// Carrega variáveis de ambiente do arquivo .env
+require("dotenv").config(); 
+
 // ========== Cria e configura a aplicação ==========
 const app = express();
 
