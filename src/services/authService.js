@@ -115,6 +115,7 @@ module.exports = () => {
       body: {
         message: "Login realizado com sucesso!",
         usuario: usuarioPublico,
+        token: token,
       },
     };
   };
