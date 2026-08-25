@@ -100,7 +100,7 @@ module.exports = () => {
       };
     }
 
-    // 6) gera um token JWT para o usuário logado (payload mínimo: id e email)
+    // 6) gera um token JWT para o usuário logado (payload mínimo: id do usuário)
     const token = jwt.sign(
       {id: usuarioEncontrado.id},
       process.env.JWT_SECRET,
@@ -115,7 +115,7 @@ module.exports = () => {
       body: {
         message: "Login realizado com sucesso!",
         usuario: usuarioPublico,
-        token: token,
+        token,
       },
     };
   };
