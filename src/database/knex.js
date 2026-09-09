@@ -6,12 +6,17 @@
 // no SQLite (arquivo "controle-financeiro.db").
 
 const knex = require('knex');
+const path = require("path");
+
+const filename = process.env.DB_FILENAME
+  ? path.resolve(process.env.DB_FILENAME)
+  : path.resolve(__dirname, "controle-financeiro.db");
 
 // Cria a conexão usando o driver SQLite3
 const connection = knex({
     client: 'sqlite3',
     connection: {
-        filename: './src/database/controle-financeiro.db'
+        filename,
     },
     // Necessário no SQLite para permitir campos sem valor default (NULL)
     useNullAsDefault: true,

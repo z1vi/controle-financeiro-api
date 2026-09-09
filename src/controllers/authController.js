@@ -33,7 +33,7 @@ module.exports = () => {
 
     const resultado = await service.login({ email, senha });
 
-    const statusCode = resultado.kind === "AUTH" ? 401 : 200;
+    const statusCode = resultado.kind === "VALIDATION" ? 400 : resultado.kind === "AUTH" ? 401 : 200;
 
     return res.status(statusCode).json(resultado.body);
   };

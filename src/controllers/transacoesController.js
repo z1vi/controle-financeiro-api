@@ -56,7 +56,7 @@ module.exports = () => {
     const { id } = req.params;
     const usuarioId = req.usuarioId;
     const resultado = await service.deletarTransacao(id, usuarioId);
-    const statusCode = resultado.kind === "NOT_FOUND" ? 404 : 200;
+    const statusCode = resultado.kind === "VALIDATION" ? 400 : resultado.kind === "NOT_FOUND" ? 404 : 200;
     return res.status(statusCode).json(resultado.body);
   };
 

@@ -20,12 +20,12 @@ module.exports = () => {
     const transacoes = await repository.listarTodas(usuarioId);
 
     // reduce() acumula o saldo percorrendo cada transação
-    const saldo = transacoes.reduce((acc, t) => {
+    const saldoCentavos = transacoes.reduce((acc, t) => {
       return t.tipo === "entrada" ? acc + Number(t.valor) : acc - Number(t.valor);
     }, 0);
 
     // Retorna o padrão { kind, body } para o controller traduzir em HTTP
-    return { kind: "SUCCESS", body: { balance: saldo, usuarioId } };
+    return { kind: "SUCCESS", body: { balance: saldoCentavos / 100, usuarioId } };
   };
 
   return { calcularSaldo };

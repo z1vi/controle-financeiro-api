@@ -18,14 +18,14 @@ module.exports = () => {
   // SELECT * FROM transacoes [WHERE usuario_id = ?]
   const listarTodas = async (usuarioId = null) => {
     const query = knex(TABELA).select("*");
-    if (usuarioId) query.where({ usuario_id: usuarioId });
+    if (usuarioId !== null) query.where({ usuario_id: usuarioId });
     return query;
   };
 
   // SELECT * FROM transacoes WHERE id = ? [AND usuario_id = ?] LIMIT 1
   const buscarPorId = async (id, usuarioId = null) => {
     const query = knex(TABELA).where({ id });
-    if (usuarioId) query.where({ usuario_id: usuarioId });
+    if (usuarioId !== null) query.where({ usuario_id: usuarioId });
     return query.first();
   };
 
@@ -35,7 +35,7 @@ module.exports = () => {
   const criarTransacao = async (transacao) => {
     const dadosBanco = {
       descricao: transacao.descricao,
-      valor: transacao.valor,
+      valor: transacao.valorCentavos,
       tipo: transacao.tipo,
       usuario_id: transacao.usuarioId,
     };
@@ -47,21 +47,21 @@ module.exports = () => {
   // Retorna null se não existir/não pertencer.
   const atualizarTransacao = async (id, transacaoAtualizada, usuarioId = null) => {
     const query = knex(TABELA).where({ id });
-    if (usuarioId) query.where({ usuario_id: usuarioId });
-    const transacao = await query.first();
+    if (usuarioId !== null) query.where({ usuario_id: usuarioId });
+    const transacao = await query.clone().first();
     if (!transacao) return null;
     await query.update(transacaoAtualizada);
-    return { id, ...transacaoAtualizada };
+    return knex(TABELA).where({ id, usuario_id: usuarioId }).first();
   };
 
   // DELETE FROM transacoes WHERE id = ? [AND usuario_id = ?]
   // Retorna null se não existir/não pertencer.
   const deletarTransacao = async (id, usuarioId = null) => {
     const query = knex(TABELA).where({ id });
-    if (usuarioId) query.where({ usuario_id: usuarioId });
-    const transacao = await query.first();
+    if (usuarioId !== null) query.where({ usuario_id: usuarioId });
+    const transacao = await query.clone().first();
     if (!transacao) return null;
-    await knex(TABELA).where({ id }).del();
+    await query.del();
     return transacao;
   };
 

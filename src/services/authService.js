@@ -25,16 +25,33 @@ const jwt = require("jsonwebtoken");
 
 module.exports = () => {
   const repository = usuariosRepository();
+  const emailValido = (email) =>
+    typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validarCadastro = (nome, email, senha) => {
+    if (typeof nome !== "string" || !nome.trim() || !email || !senha) {
+      return "Todos os campos são obrigatórios";
+    }
+    if (!emailValido(email)) return "E-mail inválido";
+    if (typeof senha !== "string" || senha.length < 8) {
+      return "A senha deve ter pelo menos 8 caracteres";
+    }
+    return null;
+  };
 
   // POST /auth/register → cria uma nova conta para o usuário
   const register = async ({ nome, email, senha } = {}) => {
     // 1) Verifica se os campos essenciais foram enviados
-    if (!nome || !email || !senha) {
+    const erroValidacao = validarCadastro(nome, email, senha);
+    if (erroValidacao) {
       return {
         kind: "VALIDATION",
-        body: { message: "Todos os campos são obrigatórios" },
+        body: { message: erroValidacao },
       };
     }
+
+    nome = nome.trim();
+    email = email.trim().toLowerCase();
 
     // 2) Evita que o mesmo e-mail seja cadastrado mais de uma vez
     const usuarioExistente = await repository.buscarPorEmail(email);
@@ -71,7 +88,7 @@ module.exports = () => {
   // POST /auth/login → valida o e-mail e a senha do usuário
   const login = async ({ email, senha } = {}) => {
     // 1) Confere se o cliente enviou os dados básicos do login
-    if (!email || !senha) {
+    if (typeof email !== "string" || typeof senha !== "string" || !email || !senha) {
       return {
         kind: "VALIDATION",
         body: { message: "Email e senha são obrigatórios" },
@@ -79,7 +96,7 @@ module.exports = () => {
     }
 
     // 2) Busca o usuário pelo e-mail informado
-    const usuarioEncontrado = await repository.buscarPorEmail(email);
+    const usuarioEncontrado = await repository.buscarPorEmail(email.trim().toLowerCase());
 
     // 3) Se não existir esse usuário, a autenticação falha
     if (!usuarioEncontrado) {

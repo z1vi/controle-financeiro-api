@@ -20,8 +20,8 @@ const validarValor = (valor) => {
     return "O valor da transação é obrigatório";
   }
 
-  // 2) Tipo: deve ser numérico (ex.: "10" em string não é aceito)
-  if (typeof valor !== "number") {
+  // 2) Tipo: deve ser finito (ex.: "10", NaN e Infinity não são aceitos)
+  if (typeof valor !== "number" || !Number.isFinite(valor)) {
     return "O valor da transação deve ser um número";
   }
 
@@ -30,11 +30,19 @@ const validarValor = (valor) => {
     return "O valor da transação deve ser maior que zero";
   }
 
+  const centavos = Math.round(valor * 100);
+  if (!Number.isSafeInteger(centavos) || Math.abs(valor * 100 - centavos) > Number.EPSILON * 100) {
+    return "O valor da transação deve ter no máximo duas casas decimais";
+  }
+
   // Passou em todas as validações → sem erro
   return null;
 };
 
+const paraCentavos = (valor) => Math.round(valor * 100);
+
 module.exports = {
   validarTipo,
   validarValor,
+  paraCentavos,
 };

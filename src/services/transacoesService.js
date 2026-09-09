@@ -15,24 +15,25 @@
 // Conceito: em operações sensíveis, o ownership (dono do recurso)
 // é validado no service e aplicado na query do repository.
 
-const { validarTipo, validarValor } = require("../validators/transacaoValidator");
+const { validarTipo, validarValor, paraCentavos } = require("../validators/transacaoValidator");
 const transacoesRepository = require("../repositories/transacoesRepository");
 const usuariosRepository = require("../repositories/usuariosRepository");
 
 module.exports = () => {
   const repository = transacoesRepository();
   const usuariosRepositoryInstance = usuariosRepository();
+  const paraResposta = ({ valor, ...transacao }) => ({ ...transacao, valor: Number(valor) / 100 });
 
   // GET → lista as transações do usuário informado
   const listarTransacoes = async (usuarioId) => {
     const transacoes = await repository.listarTodas(usuarioId);
-    return { kind: "SUCCESS", body: transacoes };
+    return { kind: "SUCCESS", body: transacoes.map(paraResposta) };
   };
 
   // POST → valida os dados e cria uma nova transação para o usuário
   const cadastrarTransacao = async ({ descricao, valor, tipo, usuarioId } = {}) => {
     // 1) Campos obrigatórios (incluindo o usuário dono da transação)
-    if (!descricao || valor === undefined || valor === null || !tipo || !usuarioId) {
+    if (typeof descricao !== "string" || !descricao.trim() || valor === undefined || valor === null || !tipo || !usuarioId) {
       return { kind: "VALIDATION", body: { message: "Todos os campos são obrigatórios" } };
     }
 
@@ -57,19 +58,21 @@ module.exports = () => {
     }
 
     // 5) Persiste no banco (gravando o usuarioId)
-    const transacaoCriada = await repository.criarTransacao({ descricao, valor, tipo, usuarioId });
+    const transacaoCriada = await repository.criarTransacao({
+      descricao: descricao.trim(), valorCentavos: paraCentavos(valor), tipo, usuarioId,
+    });
 
     return {
       kind: "SUCCESS",
-      body: { message: "Transação cadastrada com sucesso!", transacao: transacaoCriada },
+      body: { message: "Transação cadastrada com sucesso!", transacao: paraResposta(transacaoCriada) },
     };
   };
 
   // PUT → atualiza parcialmente (apenas os campos enviados), sempre do próprio usuário
   const atualizarTransacao = async (idParam, { descricao, valor, tipo, usuarioId } = {}) => {
     // 1) Valida o id recebido na URL
-    const id = parseInt(idParam, 10);
-    if (Number.isNaN(id)) {
+    const id = Number(idParam);
+    if (!Number.isSafeInteger(id) || id <= 0) {
       return { kind: "VALIDATION", body: { message: "ID inválido." } };
     }
 
@@ -82,17 +85,21 @@ module.exports = () => {
     // 3) Monta dinamicamente apenas os campos que foram enviados no body
     const dadosAtualizados = {};
 
+    if (descricao === undefined && valor === undefined && tipo === undefined) {
+      return { kind: "VALIDATION", body: { message: "Informe ao menos um campo para atualizar" } };
+    }
+
     if (descricao !== undefined) {
-      if (!descricao) {
+      if (typeof descricao !== "string" || !descricao.trim()) {
         return { kind: "VALIDATION", body: { message: "A descrição da transação não pode ser vazia" } };
       }
-      dadosAtualizados.descricao = descricao;
+      dadosAtualizados.descricao = descricao.trim();
     }
 
     if (valor !== undefined) {
       const erroValor = validarValor(valor);
       if (erroValor) return { kind: "VALIDATION", body: { message: erroValor } };
-      dadosAtualizados.valor = valor;
+      dadosAtualizados.valor = paraCentavos(valor);
     }
 
     if (tipo !== undefined) {
@@ -110,15 +117,15 @@ module.exports = () => {
 
     return {
       kind: "SUCCESS",
-      body: { message: "Transação atualizada com sucesso!", transacao: transacaoAtualizada },
+      body: { message: "Transação atualizada com sucesso!", transacao: paraResposta(transacaoAtualizada) },
     };
   };
 
   // DELETE → remove uma transação pelo id (apenas se pertencer ao usuário)
   const deletarTransacao = async (idParam, usuarioId) => {
     // 1) Valida o id recebido na URL
-    const id = parseInt(idParam, 10);
-    if (Number.isNaN(id)) {
+    const id = Number(idParam);
+    if (!Number.isSafeInteger(id) || id <= 0) {
       return { kind: "VALIDATION", body: { message: "ID inválido." } };
     }
 
@@ -130,7 +137,7 @@ module.exports = () => {
 
     return {
       kind: "SUCCESS",
-      body: { message: "Transação removida com sucesso.", deleted: true, transacao: transacaoRemovida },
+      body: { message: "Transação removida com sucesso.", deleted: true, transacao: paraResposta(transacaoRemovida) },
     };
   };
 

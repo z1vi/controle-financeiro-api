@@ -8,7 +8,8 @@ exports.up = function (knex) {
   return knex.schema.createTable("transacoes", (table) => {
     table.increments("id").primary();   // id auto-incrementável (SUBSTITUI o maxId manual!)
     table.string("descricao").notNullable(); // descrição da transação
-    table.decimal("valor").notNullable();    // valor (positivo; o tipo define soma/subtração)
+    // Valor monetário em centavos, para não sofrer imprecisão de ponto flutuante.
+    table.integer("valor").notNullable();
     table.string("tipo").notNullable();      // "entrada" (crédito) ou "saida" (débito)
   });
 };

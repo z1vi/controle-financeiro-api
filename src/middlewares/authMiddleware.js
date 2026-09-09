@@ -12,7 +12,7 @@ const authMiddleware = (req, res, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!payload.id) {
+    if (!Number.isSafeInteger(payload.id) || payload.id <= 0) {
       return next(new AppError("Token de autenticação inválido.", 401));
     }
 
